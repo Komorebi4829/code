@@ -1,0 +1,13 @@
+{
+  "name": "code",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "c": "tsc",
+    "r": "tsc && node main.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}
