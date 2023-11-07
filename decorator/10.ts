@@ -30,7 +30,7 @@ export const RoleGuardDecorator = (roles: string[]) => {
 export class UserService {
     protected users: UserType[] = [
         { id: 1, username: 'admin' },
-        { id: 2, username: 'pincman' },
+        { id: 2, username: 'superadmin' },
     ]
 
     getUsers() {
@@ -39,7 +39,7 @@ export class UserService {
 
     // 设定当前用户的角色
     getRoles() {
-        return ['user']
+        return ['user', 'admin']
     }
 
     @RoleGuardDecorator(['admin'])
