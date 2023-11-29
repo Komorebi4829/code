@@ -18,12 +18,13 @@ async function bootstrap() {
         .setTitle('X System')
         .setDescription('The X system API description')
         .setVersion('1.0')
+        .addBearerAuth()
         .build()
     const document = SwaggerModule.createDocument(app, config)
-    SwaggerModule.setup('docs', app, document)
+    SwaggerModule.setup('docs', app, document, { customSiteTitle: 'X System Swagger Documents' })
 
-    await app.listen(5000, '127.0.0.1', () => {
-        console.log('api: http://localhost:5000')
+    await app.listen(5000, '127.0.0.1', async () => {
+        console.log(`Application is running on: ${await app.getUrl()}`)
     })
 }
 bootstrap()

@@ -1,62 +1,71 @@
-import { Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post } from '@nestjs/common'
-import { isNil } from 'lodash'
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    ParseIntPipe,
+    Patch,
+    Post,
+    ValidationPipe,
+} from '@nestjs/common'
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
 
-import { PostEntity } from '../types'
+import { CreatePostDto } from '../dtos/create-post.dto'
+import { UpdatePostDto } from '../dtos/update-post.dto'
+import { PostService } from '../services/post.service'
 
-let posts: PostEntity[] = [
-    { title: 'Title 1', body: 'Content 1' },
-    { title: 'Title 2', body: 'Content 2' },
-    { title: 'Title 3', body: 'Content 3' },
-    { title: 'Title 4', body: 'Content 4' },
-    { title: 'Title 5', body: 'Content 5' },
-    { title: 'Title 6', body: 'Content 6' },
-].map((v, id) => ({ ...v, id }))
-
+@ApiBearerAuth()
+@ApiTags('posts')
 @Controller('posts')
 export class PostController {
+    constructor(private postService: PostService) {}
+
     @Get()
     async index() {
-        return posts
+        return this.postService.findAll()
     }
 
     @Get(':id')
-    async show(@Param('id') id: number) {
-        const post = posts.find((item) => item.id === Number(id))
-        if (isNil(post)) {
-            throw new NotFoundException(`the post with id ${id} doesn\'t exist!`)
-        }
-        return post
+    async show(@Param('id', new ParseIntPipe()) id: number) {
+        return this.postService.findOne(id)
     }
 
     @Post()
-    async store(@Body() data: PostEntity) {
-        const newPost = {
-            id: Math.max(...posts.map(({ id }) => id + 1)),
-            ...data,
-        }
-        posts.push(newPost)
-        return newPost
+    @ApiOperation({ summary: 'Create post' })
+    async store(
+        @Body(
+            new ValidationPipe({
+                transform: true,
+                forbidNonWhitelisted: true,
+                forbidUnknownValues: true,
+                validationError: { target: false },
+                groups: ['create'],
+            }),
+        )
+        data: CreatePostDto,
+    ) {
+        return this.postService.create(data)
     }
 
     @Patch(':id')
-    async update(@Body() data: PostEntity) {
-        let toUpdate = posts.find((it) => it.id === Number(data.id))
-        if (isNil(toUpdate)) {
-            throw new NotFoundException(`the post with id ${data.id} doesn\'t exist!`)
-        }
-        toUpdate = {
-            ...toUpdate,
-            ...data,
-        }
-        posts = posts.map((it) => (it.id === Number(data.id) ? toUpdate : it))
-        return toUpdate
+    async update(
+        @Body(
+            new ValidationPipe({
+                transform: true,
+                forbidNonWhitelisted: true,
+                forbidUnknownValues: true,
+                validationError: { target: false },
+                groups: ['update'],
+            }),
+        )
+        data: UpdatePostDto,
+    ) {
+        return this.postService.update(data)
     }
 
     @Delete(':id')
-    async delete(@Param('id') id: number) {
-        const toDelete = posts.find((item) => item.id === Number(id))
-        if (isNil(toDelete)) throw new NotFoundException(`the post with id ${id} not exits!`)
-        posts = posts.filter((item) => item.id !== Number(id))
-        return toDelete
+    async delete(@Param('id', new ParseIntPipe()) id: number) {
+        return this.postService.delete(id)
     }
 }
